@@ -281,7 +281,7 @@ fi
 if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
   log_info "Installing Oh My Zsh..."
   if ! $DRY_RUN; then
-    RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" 2>/dev/null || true
+    RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" 2>/dev/null || true
     log_ok "Oh My Zsh installed"
   else
     log_skip "[dry-run] Would install Oh My Zsh"
