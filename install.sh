@@ -27,30 +27,11 @@ log_info()  { echo "  ℹ️  $1"; }
 
 check_tool() { command -v "$1" &>/dev/null; }
 
-ask() {
-  # ask <prompt> <var_name> [default]
-  local prompt="$1"
-  local var_name="$2"
-  local default="${3:-}"
-  local answer
-
-  if [[ -n "$default" ]]; then
-    read -r -p "  $prompt [$default]: " answer
-    answer="${answer:-$default}"
-  else
-    read -r -p "  $prompt: " answer
-  fi
-
-  printf -v "$var_name" '%s' "$answer"
-}
-
 ask_yn() {
-  # ask_yn <question> <var_name> [default y|n]
   local question="$1"
   local var_name="$2"
   local default="${3:-y}"
   local answer
-
   while true; do
     if [[ "$default" == "y" ]]; then
       read -r -p "  $question [Y/n]: " answer
@@ -59,7 +40,6 @@ ask_yn() {
       read -r -p "  $question [y/N]: " answer
       answer="${answer:-n}"
     fi
-
     case "$(echo "$answer" | tr '[:upper:]' '[:lower:]')" in
       y|yes) printf -v "$var_name" '%s' "yes"; return ;;
       n|no)  printf -v "$var_name" '%s' "no";  return ;;
@@ -69,12 +49,10 @@ ask_yn() {
 }
 
 ask_choice() {
-  # ask_choice <title> <var_name> <opt1> <opt2> ...
   local title="$1"
   local var_name="$2"
   shift 2
   local options=("$@")
-
   echo ""
   echo "  $title"
   echo ""
@@ -82,7 +60,6 @@ ask_choice() {
     echo "    $((i+1))) ${options[$i]}"
   done
   echo ""
-
   local answer
   while true; do
     read -r -p "  Choose [1-${#options[@]}]: " answer
@@ -127,6 +104,18 @@ copy_config() {
     cp "$src" "$dest"
   fi
   log_ok "Installed: $dest"
+}
+
+patch_file() {
+  # patch_file <file> <search> <replacement>
+  local file="$1"
+  local search="$2"
+  local replacement="$3"
+  if [[ -f "$file" ]]; then
+    local tmp
+    tmp="$(mktemp)"
+    sed "s|${search}|${replacement}|g" "$file" > "$tmp" && mv "$tmp" "$file"
+  fi
 }
 
 # ─── Platform check ───────────────────────────────────────
@@ -188,7 +177,7 @@ fi
 check_platform
 
 # ══════════════════════════════════════════════════════════
-#   STEP 2 — Ask questions (like Gentleman.Dots)
+#   STEP 2 — Questions
 # ══════════════════════════════════════════════════════════
 
 echo ""
@@ -196,29 +185,23 @@ echo "  ────────────────────────
 echo "  Let's configure your setup"
 echo "  ─────────────────────────────────────────────────"
 
-# Shell
 ask_choice "Step 1/5 — Choose your shell:" CHOICE_SHELL \
-  "Fish (recommended — default shell)" \
-  "Zsh (+ Oh My Zsh + Powerlevel10k)"
+  "Fish (+ carapace, zoxide, atuin, starship)" \
+  "Zsh (+ Oh My Zsh, P10k, carapace, zoxide, atuin)"
 
-# Multiplexer
 ask_choice "Step 2/5 — Choose your terminal multiplexer:" CHOICE_MULTIPLEXER \
-  "Tmux (+ TPM plugins)" \
+  "Tmux (+ TPM + plugins auto-install)" \
   "None — skip"
 
-# Neovim
 echo ""
-ask_yn "Step 3/5 — Install Neovim with full config (LazyVim + plugins)?" CHOICE_NVIM "y"
+ask_yn "Step 3/5 — Install Neovim with full config? (LazyVim + OpenCode + Claude Code)" CHOICE_NVIM "y"
 
-# Font
 echo ""
 ask_yn "Step 4/5 — Install MesloLGS Nerd Font?" CHOICE_FONT "y"
 
-# Backup
 echo ""
 ask_yn "Step 5/5 — Backup existing configs before overwriting?" CHOICE_BACKUP "y"
 
-# Summary
 echo ""
 echo "  ─────────────────────────────────────────────────"
 echo "  Your choices:"
@@ -259,7 +242,6 @@ else
   log_info "Installing Homebrew..."
   if ! $DRY_RUN; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    # Add brew to PATH for Apple Silicon
     if [[ "$(uname -m)" == "arm64" ]]; then
       eval "$(/opt/homebrew/bin/brew shellenv)"
     fi
@@ -275,57 +257,46 @@ fi
 
 log_step "🐚 Shell..."
 
+# Create required dirs (same as Gentleman.Dots)
+if ! $DRY_RUN; then
+  mkdir -p "$HOME/.config"
+  mkdir -p "$HOME/.cache/starship"
+  mkdir -p "$HOME/.cache/carapace"
+  mkdir -p "$HOME/.local/share/atuin"
+fi
+
 if [[ "$CHOICE_SHELL" == Fish* ]]; then
-  if ! check_tool fish; then
-    log_info "Installing Fish..."
-    $DRY_RUN || brew install fish
-    log_ok "Fish installed"
+  log_info "Installing Fish + carapace + zoxide + atuin + starship..."
+  if ! $DRY_RUN; then
+    brew install fish carapace zoxide atuin starship
   else
-    log_skip "Fish already installed ($(fish --version 2>&1))"
+    log_skip "[dry-run] Would install: fish carapace zoxide atuin starship"
   fi
-  # Install Starship (used by Fish config)
-  if ! check_tool starship; then
-    log_info "Installing Starship prompt..."
-    $DRY_RUN || brew install starship
-    log_ok "Starship installed"
-  else
-    log_skip "Starship already installed"
-  fi
-  # Install Oh My Fish
-  if [[ ! -d "$HOME/.local/share/omf" ]] && ! $DRY_RUN; then
-    log_info "Installing Oh My Fish..."
-    curl -L https://raw.githubusercontent.com/oh-my-fish/oh-my-fish/master/bin/install | fish -c "source /dev/stdin --noninteractive" 2>/dev/null || true
-  fi
-  # Copy Fish config
   copy_config "$REPO_DIR/stildeeneca17-fish/fish" "$HOME/.config/fish"
-  # Copy Starship config
   copy_config "$REPO_DIR/starship.toml" "$HOME/.config/starship.toml"
-  log_ok "Fish + Starship configured"
+  # Patch tmux default shell placeholder in config.fish (if tmux chosen)
+  if [[ "$CHOICE_MULTIPLEXER" == Tmux* ]] && ! $DRY_RUN; then
+    FISH_PATH="$(which fish 2>/dev/null || echo /opt/homebrew/bin/fish)"
+    patch_file "$HOME/.config/fish/config.fish" "# STILDEENECA_DEFAULT_SHELL" \
+      "set -gx SHELL $FISH_PATH"
+  fi
+  log_ok "Fish configured"
 
 elif [[ "$CHOICE_SHELL" == Zsh* ]]; then
-  if ! check_tool zsh; then
-    log_info "Installing Zsh..."
-    $DRY_RUN || brew install zsh zsh-syntax-highlighting zsh-autosuggestions
-    log_ok "Zsh installed"
+  log_info "Installing Zsh + carapace + zoxide + atuin + p10k + plugins..."
+  if ! $DRY_RUN; then
+    brew install zsh carapace zoxide atuin zsh-autosuggestions zsh-syntax-highlighting zsh-autocomplete powerlevel10k
   else
-    log_skip "Zsh already installed"
+    log_skip "[dry-run] Would install: zsh + plugins"
   fi
-  # Install Oh My Zsh if not present
+  # Oh My Zsh
   if [[ ! -d "$HOME/.oh-my-zsh" ]] && ! $DRY_RUN; then
     log_info "Installing Oh My Zsh..."
     RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" 2>/dev/null || true
-    log_ok "Oh My Zsh installed"
-  fi
-  # Install Powerlevel10k
-  if [[ ! -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" ]] && ! $DRY_RUN; then
-    log_info "Installing Powerlevel10k..."
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \
-      "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" 2>/dev/null || true
-    log_ok "Powerlevel10k installed"
   fi
   copy_config "$REPO_DIR/stildeeneca17-zsh/.zshrc" "$HOME/.zshrc"
   copy_config "$REPO_DIR/stildeeneca17-zsh/.p10k.zsh" "$HOME/.p10k.zsh"
-  log_ok "Zsh + P10k configured"
+  log_ok "Zsh configured"
 fi
 
 # ══════════════════════════════════════════════════════════
@@ -338,67 +309,118 @@ if [[ "$CHOICE_MULTIPLEXER" == Tmux* ]]; then
   if ! check_tool tmux; then
     log_info "Installing Tmux..."
     $DRY_RUN || brew install tmux
-    log_ok "Tmux installed"
   else
     log_skip "Tmux already installed ($(tmux -V))"
   fi
-  copy_config "$REPO_DIR/stildeeneca17-tmux/tmux.conf" "$HOME/.tmux.conf"
-  # Bootstrap TPM
-  if [[ ! -d "$HOME/.tmux/plugins/tpm" ]]; then
-    log_info "Installing TPM (Tmux Plugin Manager)..."
+
+  # Clone TPM if not present
+  TPM_DIR="$HOME/.tmux/plugins/tpm"
+  if [[ ! -d "$TPM_DIR" ]]; then
+    log_info "Cloning TPM (Tmux Plugin Manager)..."
     if ! $DRY_RUN; then
-      git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm" --depth 1
-      log_ok "TPM installed"
+      git clone https://github.com/tmux-plugins/tpm "$TPM_DIR" --depth 1
+      log_ok "TPM cloned"
     else
       log_skip "[dry-run] Would clone TPM"
     fi
   else
-    log_skip "TPM already installed"
+    log_skip "TPM already present"
   fi
-  log_ok "Tmux configured"
+
+  copy_config "$REPO_DIR/stildeeneca17-tmux/tmux.conf" "$HOME/.tmux.conf"
+
+  # Patch default shell in tmux.conf (same as Gentleman.Dots)
+  if ! $DRY_RUN; then
+    SHELL_BIN=""
+    if [[ "$CHOICE_SHELL" == Fish* ]]; then
+      SHELL_BIN="$(which fish 2>/dev/null || echo /opt/homebrew/bin/fish)"
+    elif [[ "$CHOICE_SHELL" == Zsh* ]]; then
+      SHELL_BIN="$(which zsh 2>/dev/null || echo /bin/zsh)"
+    fi
+    if [[ -n "$SHELL_BIN" ]]; then
+      SHELL_CONFIG="set -g default-command \"$SHELL_BIN\"\nset -g default-shell \"$SHELL_BIN\""
+      patch_file "$HOME/.tmux.conf" "# STILDEENECA_DEFAULT_SHELL" "$SHELL_CONFIG"
+    fi
+  fi
+
+  # Auto-install plugins via TPM (same as Gentleman.Dots)
+  log_info "Installing Tmux plugins via TPM..."
+  if ! $DRY_RUN; then
+    "$HOME/.tmux/plugins/tpm/bin/install_plugins" 2>/dev/null || \
+      log_info "TPM plugin install had issues — run Ctrl+a I in tmux to retry"
+    log_ok "Tmux configured + plugins installed"
+  else
+    log_skip "[dry-run] Would run TPM install_plugins"
+  fi
+
 else
   log_skip "Multiplexer skipped"
 fi
 
 # ══════════════════════════════════════════════════════════
-#   STEP 7 — Neovim
+#   STEP 7 — Neovim + AI tools
 # ══════════════════════════════════════════════════════════
 
 log_step "📝 Neovim..."
 
 if [[ "$CHOICE_NVIM" == "yes" ]]; then
-  if ! check_tool nvim; then
-    log_info "Installing Neovim and dependencies..."
-    $DRY_RUN || brew install neovim git gcc fzf fd ripgrep coreutils bat curl lazygit node
-    log_ok "Neovim installed"
+  # Ensure Node.js (required for LSP)
+  if ! check_tool node; then
+    log_info "Installing Node.js..."
+    $DRY_RUN || brew install node
+    log_ok "Node.js installed"
   else
-    log_skip "Neovim already installed ($(nvim --version | head -1))"
-    # Install missing deps anyway
-    $DRY_RUN || brew install fzf fd ripgrep bat lazygit node 2>/dev/null || true
+    log_skip "Node.js already installed ($(node --version))"
   fi
-  copy_config "$REPO_DIR/stildeeneca17-nvim/nvim" "$HOME/.config/nvim"
-  log_ok "Neovim configured — plugins will install on first open"
 
-  # Install AI CLI tools (optional — same as Gentleman.Dots, won't fail if unavailable)
+  # Install Neovim + all dependencies (same list as Gentleman.Dots)
+  log_info "Installing Neovim and dependencies..."
   if ! $DRY_RUN; then
-    if ! check_tool opencode; then
-      log_info "Installing OpenCode CLI (optional)..."
-      curl -fsSL https://opencode.ai/install | bash 2>/dev/null || \
-        log_info "OpenCode install failed — install manually: https://opencode.ai"
-    else
-      log_skip "OpenCode already installed ($(opencode --version 2>/dev/null || echo 'unknown version'))"
-    fi
+    brew install nvim git gcc fzf fd ripgrep coreutils bat curl lazygit tree-sitter
+  else
+    log_skip "[dry-run] Would install: nvim git gcc fzf fd ripgrep coreutils bat curl lazygit tree-sitter"
+  fi
 
-    if ! check_tool claude; then
-      log_info "Installing Claude Code CLI (optional)..."
-      curl -fsSL https://claude.ai/install.sh | bash 2>/dev/null || \
-        log_info "Claude Code install failed — install manually: https://claude.ai/code"
+  # Create Obsidian dirs (same as Gentleman.Dots)
+  if ! $DRY_RUN; then
+    mkdir -p "$HOME/.config/obsidian/templates"
+  fi
+
+  copy_config "$REPO_DIR/stildeeneca17-nvim/nvim" "$HOME/.config/nvim"
+  log_ok "Neovim configured — plugins install on first open"
+
+  # Install OpenCode (same as Gentleman.Dots — part of nvim step, not optional prompt)
+  log_info "Installing OpenCode..."
+  if ! $DRY_RUN; then
+    if check_tool opencode; then
+      log_skip "OpenCode already installed ($(opencode version 2>/dev/null | head -1 || echo 'installed'))"
     else
-      log_skip "Claude Code already installed"
+      curl -fsSL https://opencode.ai/install | bash || \
+        log_info "OpenCode install failed — install manually: https://opencode.ai"
     fi
   else
-    log_skip "[dry-run] Would install OpenCode + Claude Code CLI"
+    log_skip "[dry-run] Would install OpenCode"
   fi
+
+  # Copy OpenCode config (now that it's installed)
+  if check_tool opencode || $DRY_RUN; then
+    copy_config "$REPO_DIR/stildeeneca17-opencode/opencode" "$HOME/.config/opencode"
+    log_ok "OpenCode config installed"
+  fi
+
+  # Install Claude Code (same as Gentleman.Dots — part of nvim step)
+  log_info "Installing Claude Code..."
+  if ! $DRY_RUN; then
+    if check_tool claude; then
+      log_skip "Claude Code already installed"
+    else
+      curl -fsSL https://claude.ai/install.sh | bash || \
+        log_info "Claude Code install failed — install manually: https://claude.ai/code"
+    fi
+  else
+    log_skip "[dry-run] Would install Claude Code"
+  fi
+
 else
   log_skip "Neovim skipped"
 fi
@@ -413,11 +435,11 @@ if [[ "$CHOICE_FONT" == "yes" ]]; then
   log_info "Installing MesloLGS Nerd Font..."
   if ! $DRY_RUN; then
     brew tap homebrew/cask-fonts 2>/dev/null || true
-    brew install --cask font-meslo-lg-nerd-font 2>/dev/null || \
-      log_info "Font may already be installed or unavailable via brew — check manually"
+    brew install --cask font-meslo-lg-nerd-font || \
+      log_info "Font may already be installed — check Font Book"
     log_ok "Font installed"
   else
-    log_skip "[dry-run] Would install font"
+    log_skip "[dry-run] Would install MesloLGS Nerd Font"
   fi
 else
   log_skip "Font skipped"
@@ -436,49 +458,32 @@ fi
 log_ok "Git configured"
 
 # ══════════════════════════════════════════════════════════
-#   STEP 10 — OpenCode
-# ══════════════════════════════════════════════════════════
-
-log_step "🤖 OpenCode config..."
-if check_tool opencode; then
-  copy_config "$REPO_DIR/stildeeneca17-opencode/opencode" "$HOME/.config/opencode"
-  log_ok "OpenCode configured"
-else
-  log_skip "opencode not installed — skipping"
-fi
-
-# ══════════════════════════════════════════════════════════
-#   STEP 11 — Set default shell
+#   STEP 10 — Set default shell
 # ══════════════════════════════════════════════════════════
 
 log_step "🐚 Setting default shell..."
 
 if [[ "$CHOICE_SHELL" == Fish* ]]; then
-  FISH_PATH="$(which fish 2>/dev/null || echo /opt/homebrew/bin/fish)"
-  if [[ "$SHELL" != "$FISH_PATH" ]]; then
-    if ! $DRY_RUN; then
-      if ! grep -q "$FISH_PATH" /etc/shells 2>/dev/null; then
-        echo "$FISH_PATH" | sudo tee -a /etc/shells > /dev/null
-      fi
-      chsh -s "$FISH_PATH"
-      log_ok "Default shell set to Fish ($FISH_PATH)"
-    else
-      log_skip "[dry-run] Would set shell to $FISH_PATH"
-    fi
-  else
-    log_skip "Fish is already the default shell"
-  fi
+  SHELL_PATH="$(which fish 2>/dev/null || echo /opt/homebrew/bin/fish)"
 elif [[ "$CHOICE_SHELL" == Zsh* ]]; then
-  ZSH_PATH="$(which zsh 2>/dev/null || echo /bin/zsh)"
-  if [[ "$SHELL" != "$ZSH_PATH" ]]; then
-    if ! $DRY_RUN; then
-      chsh -s "$ZSH_PATH"
-      log_ok "Default shell set to Zsh ($ZSH_PATH)"
-    else
-      log_skip "[dry-run] Would set shell to $ZSH_PATH"
-    fi
+  SHELL_PATH="$(which zsh 2>/dev/null || echo /bin/zsh)"
+else
+  SHELL_PATH=""
+fi
+
+if [[ -n "$SHELL_PATH" ]]; then
+  if [[ "$SHELL" == "$SHELL_PATH" ]]; then
+    log_skip "$SHELL_PATH is already the default shell"
   else
-    log_skip "Zsh is already the default shell"
+    if ! $DRY_RUN; then
+      if ! grep -qF "$SHELL_PATH" /etc/shells 2>/dev/null; then
+        echo "$SHELL_PATH" | sudo tee -a /etc/shells > /dev/null
+      fi
+      chsh -s "$SHELL_PATH"
+      log_ok "Default shell set to $SHELL_PATH"
+    else
+      log_skip "[dry-run] Would set default shell to $SHELL_PATH"
+    fi
   fi
 fi
 
@@ -499,18 +504,16 @@ fi
 
 echo "  Post-install steps:"
 echo ""
-
 if [[ "$CHOICE_SHELL" == Fish* ]]; then
-  echo "    1. Reload shell:    exec fish"
-fi
-if [[ "$CHOICE_SHELL" == Zsh* ]]; then
-  echo "    1. Reload shell:    exec zsh"
+  echo "    1. Reload shell:  exec fish"
+elif [[ "$CHOICE_SHELL" == Zsh* ]]; then
+  echo "    1. Reload shell:  exec zsh"
 fi
 if [[ "$CHOICE_MULTIPLEXER" == Tmux* ]]; then
-  echo "    2. Tmux plugins:    open tmux → Ctrl+a then I"
+  echo "    2. Tmux plugins:  already installed — or press Ctrl+a I to reinstall"
 fi
 if [[ "$CHOICE_NVIM" == "yes" ]]; then
-  echo "    3. Neovim plugins:  nvim  (auto-installs on first open)"
+  echo "    3. Neovim:        nvim  (plugins auto-install on first open)"
 fi
-echo "    4. Git email:       git config --global user.email \"you@example.com\""
+echo "    4. Git email:     git config --global user.email \"you@example.com\""
 echo ""
