@@ -389,7 +389,9 @@ if [[ "$CHOICE_NVIM" == "yes" ]]; then
   copy_config "$REPO_DIR/stildeeneca17-nvim/nvim" "$HOME/.config/nvim"
   log_ok "Neovim configured — plugins install on first open"
 
-  # Install OpenCode (same as Gentleman.Dots — part of nvim step, not optional prompt)
+  # ── AI CLI tools (all installed as part of nvim step, same as Gentleman.Dots) ──
+
+  # OpenCode
   log_info "Installing OpenCode..."
   if ! $DRY_RUN; then
     if check_tool opencode; then
@@ -408,7 +410,7 @@ if [[ "$CHOICE_NVIM" == "yes" ]]; then
     log_ok "OpenCode config installed"
   fi
 
-  # Install Claude Code (same as Gentleman.Dots — part of nvim step)
+  # Claude Code
   log_info "Installing Claude Code..."
   if ! $DRY_RUN; then
     if check_tool claude; then
@@ -419,6 +421,45 @@ if [[ "$CHOICE_NVIM" == "yes" ]]; then
     fi
   else
     log_skip "[dry-run] Would install Claude Code"
+  fi
+
+  # Codex CLI (OpenAI)
+  log_info "Installing Codex CLI..."
+  if ! $DRY_RUN; then
+    if check_tool codex; then
+      log_skip "Codex CLI already installed"
+    else
+      curl -fsSL https://chatgpt.com/codex/install.sh | sh || \
+        log_info "Codex CLI install failed — install manually: https://developers.openai.com/codex/cli"
+    fi
+  else
+    log_skip "[dry-run] Would install Codex CLI"
+  fi
+
+  # Gemini CLI
+  log_info "Installing Gemini CLI..."
+  if ! $DRY_RUN; then
+    if check_tool gemini; then
+      log_skip "Gemini CLI already installed"
+    else
+      brew install gemini-cli || \
+        log_info "Gemini CLI install failed — install manually: https://geminicli.com/docs/get-started/installation"
+    fi
+  else
+    log_skip "[dry-run] Would install Gemini CLI"
+  fi
+
+  # Engram (persistent memory for AI agents)
+  log_info "Installing Engram..."
+  if ! $DRY_RUN; then
+    if check_tool engram; then
+      log_skip "Engram already installed ($(engram version 2>/dev/null || echo 'installed'))"
+    else
+      brew install gentleman-programming/tap/engram || \
+        log_info "Engram install failed — install manually: https://github.com/Gentleman-Programming/engram"
+    fi
+  else
+    log_skip "[dry-run] Would install Engram"
   fi
 
 else
