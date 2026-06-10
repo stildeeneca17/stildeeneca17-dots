@@ -156,7 +156,7 @@ run_brewfile
 
 log_step "🐟 Fish shell config..."
 if check_tool fish; then
-  copy_config "$REPO_DIR/StildeenecaFish/fish" "$HOME/.config/fish"
+  copy_config "$REPO_DIR/stildeeneca17-fish/fish" "$HOME/.config/fish"
   log_ok "Fish config installed"
 else
   log_skip "fish not installed — skipping"
@@ -164,9 +164,9 @@ fi
 
 log_step "💤 Zsh config..."
 if check_tool zsh; then
-  copy_config "$REPO_DIR/StildeenecaZsh/.zshrc" "$HOME/.zshrc"
-  if [[ -f "$REPO_DIR/StildeenecaZsh/.p10k.zsh" ]]; then
-    copy_config "$REPO_DIR/StildeenecaZsh/.p10k.zsh" "$HOME/.p10k.zsh"
+  copy_config "$REPO_DIR/stildeeneca17-zsh/.zshrc" "$HOME/.zshrc"
+  if [[ -f "$REPO_DIR/stildeeneca17-zsh/.p10k.zsh" ]]; then
+    copy_config "$REPO_DIR/stildeeneca17-zsh/.p10k.zsh" "$HOME/.p10k.zsh"
   fi
   log_ok "Zsh config installed"
 else
@@ -175,7 +175,7 @@ fi
 
 log_step "📝 Neovim config..."
 if check_tool nvim; then
-  copy_config "$REPO_DIR/StildeenecaNvim/nvim" "$HOME/.config/nvim"
+  copy_config "$REPO_DIR/stildeeneca17-nvim/nvim" "$HOME/.config/nvim"
   log_ok "Neovim config installed"
 else
   log_skip "nvim not installed — skipping"
@@ -183,7 +183,7 @@ fi
 
 log_step "🪟 Tmux config..."
 if check_tool tmux; then
-  copy_config "$REPO_DIR/StildeenecaTmux/tmux.conf" "$HOME/.tmux.conf"
+  copy_config "$REPO_DIR/stildeeneca17-tmux/tmux.conf" "$HOME/.tmux.conf"
   # Bootstrap TPM if not present
   if [[ ! -d "$HOME/.tmux/plugins/tpm" ]]; then
     if ! $DRY_RUN; then
@@ -209,14 +209,14 @@ else
 fi
 
 log_step "🔧 Git config..."
-copy_config "$REPO_DIR/StildeenecaGit/.gitconfig" "$HOME/.gitconfig"
-copy_config "$REPO_DIR/StildeenecaGit/.gitignore_global" "$HOME/.gitignore_global"
+copy_config "$REPO_DIR/stildeeneca17-git/.gitconfig" "$HOME/.gitconfig"
+copy_config "$REPO_DIR/stildeeneca17-git/.gitignore_global" "$HOME/.gitignore_global"
 git config --global core.excludesfile "$HOME/.gitignore_global" 2>/dev/null || true
 log_ok "Git config installed"
 
 log_step "🤖 OpenCode config..."
 if check_tool opencode; then
-  copy_config "$REPO_DIR/StildeenecaOpencode/opencode" "$HOME/.config/opencode"
+  copy_config "$REPO_DIR/stildeeneca17-opencode/opencode" "$HOME/.config/opencode"
   log_ok "OpenCode config installed"
 else
   log_skip "opencode not installed — skipping"
