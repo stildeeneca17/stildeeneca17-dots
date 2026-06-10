@@ -290,6 +290,21 @@ else
   log_skip "Oh My Zsh already installed"
 fi
 
+# Powerlevel10k — must be cloned into OMZ custom themes (brew install alone is not enough)
+P10K_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
+if [[ ! -d "$P10K_DIR" ]]; then
+  log_info "Installing Powerlevel10k theme into Oh My Zsh..."
+  if ! $DRY_RUN; then
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR" 2>/dev/null || \
+      log_warn "Powerlevel10k clone failed — run manually: git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $P10K_DIR"
+    log_ok "Powerlevel10k installed"
+  else
+    log_skip "[dry-run] Would clone Powerlevel10k into $P10K_DIR"
+  fi
+else
+  log_skip "Powerlevel10k already in OMZ themes"
+fi
+
 # direnv
 install_brew_pkg direnv direnv
 
