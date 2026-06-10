@@ -60,7 +60,7 @@ ask_yn() {
       answer="${answer:-n}"
     fi
 
-    case "${answer,,}" in
+    case "$(echo "$answer" | tr '[:upper:]' '[:lower:]')" in
       y|yes) printf -v "$var_name" '%s' "yes"; return ;;
       n|no)  printf -v "$var_name" '%s' "no";  return ;;
       *) echo "  Please answer y or n." ;;
