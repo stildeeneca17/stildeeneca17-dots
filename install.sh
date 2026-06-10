@@ -476,12 +476,65 @@ if [[ "$CHOICE_NVIM" == "yes" ]]; then
     log_skip "[dry-run] Would install Engram"
   fi
 
+  # Gentle-AI + GGA
+  log_info "Installing Gentle-AI and GGA..."
+  if ! $DRY_RUN; then
+    brew install gentleman-programming/tap/gentle-ai 2>/dev/null || \
+      log_info "gentle-ai install failed — install manually: https://github.com/Gentleman-Programming/gentle-ai"
+    brew install gentleman-programming/tap/gga 2>/dev/null || \
+      log_info "gga install failed — install manually: https://github.com/Gentleman-Programming/gentleman-guardian-angel"
+  else
+    log_skip "[dry-run] Would install gentle-ai and gga"
+  fi
+
 else
   log_skip "Neovim skipped"
 fi
 
 # ══════════════════════════════════════════════════════════
-#   STEP 8 — Font
+#   STEP 8 — CLI utilities
+# ══════════════════════════════════════════════════════════
+
+log_step "🛠️  CLI utilities..."
+
+# These tools have no config to copy — just install them
+UTILS=(
+  "eza:eza"
+  "bat:bat"
+  "fzf:fzf"
+  "fd:fd"
+  "zoxide:zoxide"
+  "atuin:atuin"
+  "btop:btop"
+  "tldr:tldr"
+  "xh:xh"
+  "fastfetch:fastfetch"
+  "mkcert:mkcert"
+  "wget:wget"
+  "htop:htop"
+  "lazydocker:lazydocker"
+  "stern:stern"
+  "jq:jq"
+  "yq:yq"
+  "tree:tree"
+  "shellcheck:shellcheck"
+)
+
+for entry in "${UTILS[@]}"; do
+  cmd="${entry%%:*}"
+  pkg="${entry##*:}"
+  if check_tool "$cmd"; then
+    log_skip "$cmd already installed"
+  else
+    log_info "Installing $pkg..."
+    $DRY_RUN || brew install "$pkg" || log_info "$pkg install failed — run: brew install $pkg"
+  fi
+done
+
+log_ok "CLI utilities done"
+
+# ══════════════════════════════════════════════════════════
+#   STEP 9 — Font
 # ══════════════════════════════════════════════════════════
 
 log_step "🔤 Nerd Font..."
@@ -501,7 +554,7 @@ else
 fi
 
 # ══════════════════════════════════════════════════════════
-#   STEP 9 — Git config
+#   STEP 10 — Git config
 # ══════════════════════════════════════════════════════════
 
 log_step "🔧 Git config..."
@@ -522,7 +575,7 @@ fi
 log_ok "Git configured"
 
 # ══════════════════════════════════════════════════════════
-#   STEP 10 — Set default shell
+#   STEP 11 — Set default shell
 # ══════════════════════════════════════════════════════════
 
 log_step "🐚 Setting default shell..."
