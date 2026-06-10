@@ -67,7 +67,11 @@ Steps that require manual action after running `./install.sh`.
 ### 🐚 Shell
 
 - [ ] **Reload shell**: `exec fish` (or `exec zsh`)
-- [ ] **Set Git email**: `git config --global user.email "you@example.com"`
+- [ ] **Set Git identity** (sanitized in the repo):
+  ```bash
+  git config --global user.name "Your Name"
+  git config --global user.email "you@example.com"
+  ```
 
 ### 🪟 Tmux
 
@@ -98,8 +102,9 @@ Steps that require manual action after running `./install.sh`.
 
 ### 🔧 Git
 
-- [ ] **Set your email** (sanitized in the repo):
+- [ ] **Set your name and email** (sanitized in the repo):
   ```bash
+  git config --global user.name "Your Name"
   git config --global user.email "you@example.com"
   ```
 - [ ] **Verify delta**: run `git diff` in any repo — should show side-by-side diff with colors.
