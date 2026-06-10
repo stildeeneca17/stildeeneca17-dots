@@ -378,6 +378,27 @@ if [[ "$CHOICE_NVIM" == "yes" ]]; then
   fi
   copy_config "$REPO_DIR/stildeeneca17-nvim/nvim" "$HOME/.config/nvim"
   log_ok "Neovim configured — plugins will install on first open"
+
+  # Install AI CLI tools (optional — same as Gentleman.Dots, won't fail if unavailable)
+  if ! $DRY_RUN; then
+    if ! check_tool opencode; then
+      log_info "Installing OpenCode CLI (optional)..."
+      curl -fsSL https://opencode.ai/install | bash 2>/dev/null || \
+        log_info "OpenCode install failed — install manually: https://opencode.ai"
+    else
+      log_skip "OpenCode already installed ($(opencode --version 2>/dev/null || echo 'unknown version'))"
+    fi
+
+    if ! check_tool claude; then
+      log_info "Installing Claude Code CLI (optional)..."
+      curl -fsSL https://claude.ai/install.sh | bash 2>/dev/null || \
+        log_info "Claude Code install failed — install manually: https://claude.ai/code"
+    else
+      log_skip "Claude Code already installed"
+    fi
+  else
+    log_skip "[dry-run] Would install OpenCode + Claude Code CLI"
+  fi
 else
   log_skip "Neovim skipped"
 fi
