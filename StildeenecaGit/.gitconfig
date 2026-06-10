@@ -1,0 +1,12 @@
+# stildeeneca17 — Global Git Config
+[user]
+	name = julianmendez02
+	email = # YOUR_EMAIL_HERE
+[credential]
+	helper = osxkeychain
+[init]
+	defaultBranch = main
+[pull]
+	rebase = false
+[core]
+	excludesfile = ~/.gitignore_global

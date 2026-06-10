@@ -1,0 +1,47 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Editors
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.local
+*.secret
+.direnv/
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Build artifacts
+dist/
+build/
+*.o
+*.a
+
+# Infrastructure
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Misc
+*.log
+*.bak
+*.backup
