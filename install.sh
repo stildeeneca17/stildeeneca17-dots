@@ -515,6 +515,9 @@ fi
 
 log_step "🔧  Git"
 
+install_brew_pkg git git
+install_brew_pkg gh gh
+install_brew_pkg lazygit lazygit
 install_brew_pkg delta git-delta
 
 copy_config "$REPO_DIR/stildeeneca17-git/.gitconfig" "$HOME/.gitconfig"
