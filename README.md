@@ -1,6 +1,6 @@
-# Stildeeneca17.Dots
+# stildeeneca17-dots
 
-Personal dotfiles for macOS (Apple Silicon + Intel), structured after [Gentleman.Dots](https://github.com/Gentleman-Programming/Gentleman.Dots).
+Personal dotfiles for macOS (Apple Silicon + Intel).
 
 ## What's inside
 
@@ -18,14 +18,14 @@ Personal dotfiles for macOS (Apple Silicon + Intel), structured after [Gentleman
 ## Quick install
 
 ```bash
-git clone https://github.com/stildeeneca17/Stildeeneca17.Dots.git ~/dotfiles
+git clone https://github.com/stildeeneca17/stildeeneca17-dots.git ~/dotfiles
 cd ~/dotfiles
 ./install.sh
 ```
 
 Or one-liner:
 ```bash
-git clone https://github.com/stildeeneca17/Stildeeneca17.Dots.git ~/dotfiles && ~/dotfiles/install.sh
+git clone https://github.com/stildeeneca17/stildeeneca17-dots.git ~/dotfiles && ~/dotfiles/install.sh
 ```
 
 ## Dry run first
@@ -54,7 +54,3 @@ git clone https://github.com/stildeeneca17/Stildeeneca17.Dots.git ~/dotfiles && 
 ## Tested on
 
 - macOS 26 (Sequoia), Apple Silicon (M-series)
-
-## Inspired by
-
-[Gentleman.Dots](https://github.com/Gentleman-Programming/Gentleman.Dots) by Gentleman Programming
