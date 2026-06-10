@@ -280,6 +280,13 @@ if [[ "$CHOICE_SHELL" == Fish* ]]; then
     patch_file "$HOME/.config/fish/config.fish" "# STILDEENECA_DEFAULT_SHELL" \
       "set -gx SHELL $FISH_PATH"
   fi
+  # direnv — load .env per directory
+  if ! check_tool direnv; then
+    log_info "Installing direnv..."
+    $DRY_RUN || brew install direnv
+  else
+    log_skip "direnv already installed"
+  fi
   log_ok "Fish configured"
 
 elif [[ "$CHOICE_SHELL" == Zsh* ]]; then
@@ -296,6 +303,13 @@ elif [[ "$CHOICE_SHELL" == Zsh* ]]; then
   fi
   copy_config "$REPO_DIR/stildeeneca17-zsh/.zshrc" "$HOME/.zshrc"
   copy_config "$REPO_DIR/stildeeneca17-zsh/.p10k.zsh" "$HOME/.p10k.zsh"
+  # direnv — load .env per directory
+  if ! check_tool direnv; then
+    log_info "Installing direnv..."
+    $DRY_RUN || brew install direnv
+  else
+    log_skip "direnv already installed"
+  fi
   log_ok "Zsh configured"
 fi
 
@@ -491,6 +505,15 @@ fi
 # ══════════════════════════════════════════════════════════
 
 log_step "🔧 Git config..."
+
+# Install git-delta (better diffs) — it patches .gitconfig automatically
+if ! check_tool delta; then
+  log_info "Installing git-delta..."
+  $DRY_RUN || brew install git-delta
+else
+  log_skip "git-delta already installed ($(delta --version 2>/dev/null))"
+fi
+
 copy_config "$REPO_DIR/stildeeneca17-git/.gitconfig" "$HOME/.gitconfig"
 copy_config "$REPO_DIR/stildeeneca17-git/.gitignore_global" "$HOME/.gitignore_global"
 if ! $DRY_RUN; then
