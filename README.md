@@ -138,9 +138,14 @@ Steps that require manual action after running `./install.sh`.
 
 ### 🔤 Font
 
-- [ ] **Set font in iTerm2**: Preferences → Profiles → Text → Font → `MesloLGS NF` (size 14).
+- [ ] **Set font in iTerm2**: `Cmd+,` → Profiles → Text → Font → search `MesloL` → select **`MesloLGS Nerd Font Mono`**.
 - [ ] **Verify icons**: run `fastfetch` or `eza --icons` — icons should render correctly.
-  If you see boxes/squares, the font isn't set in your terminal.
+  If you see `?` boxes or squares, the font isn't set in your terminal.
+
+> **Why `MesloLGS Nerd Font Mono` and not `MesloLGS NF`?**
+> The cask `font-meslo-lg-nerd-font` installs the full Meslo family under the name
+> **MesloLGS Nerd Font Mono**. That's the one Powerlevel10k recommends. If you search
+> for `MesloL` in iTerm2's font picker, pick the first result: `MesloLGS Nerd Font Mono`.
 
 ### 🖥️ macOS misc
 
