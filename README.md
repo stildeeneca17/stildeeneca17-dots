@@ -138,6 +138,7 @@ Steps that require manual action after running `./install.sh`.
 
 ### 🔤 Font
 
+- [ ] **Set color preset in iTerm2**: `Cmd+,` → Profiles → Colors → Color Preset → **`Solarized Dark`**.
 - [ ] **Set font in iTerm2**: `Cmd+,` → Profiles → Text → Font → search `MesloL` → select **`MesloLGS Nerd Font Mono`**.
 - [ ] **Verify icons**: run `fastfetch` or `eza --icons` — icons should render correctly.
   If you see `?` boxes or squares, the font isn't set in your terminal.
