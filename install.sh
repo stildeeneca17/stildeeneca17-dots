@@ -341,18 +341,11 @@ fi
 
 copy_config "$REPO_DIR/stildeeneca17-tmux/tmux.conf" "$HOME/.tmux.conf"
 
-# Patch default shell → Fish
-if ! $DRY_RUN; then
-  FISH_BIN="$(which fish 2>/dev/null || echo /opt/homebrew/bin/fish)"
-  SHELL_CONFIG="set -g default-command \"$FISH_BIN\"\nset -g default-shell \"$FISH_BIN\""
-  patch_file "$HOME/.tmux.conf" "# STILDEENECA_DEFAULT_SHELL" "$SHELL_CONFIG"
-fi
-
 # Auto-install plugins
 log_info "Installing Tmux plugins via TPM..."
 if ! $DRY_RUN; then
   "$HOME/.tmux/plugins/tpm/bin/install_plugins" 2>/dev/null || \
-    log_warn "TPM plugin install had issues — press Ctrl+a I in tmux to retry"
+    log_warn "TPM plugin install had issues — press Ctrl+b I in tmux to retry"
   log_ok "Tmux plugins installed"
 else
   log_skip "[dry-run] Would run TPM install_plugins"
@@ -581,7 +574,7 @@ fi
 echo -e "  ${BOLD_WHITE}Next steps:${RESET}"
 echo ""
 echo -e "  ${CYAN}1.${RESET}  Reload shell          ${DIM}exec fish${RESET}"
-echo -e "  ${CYAN}2.${RESET}  Tmux plugins          ${DIM}already installed — or Ctrl+a I to retry${RESET}"
+  echo -e "  ${CYAN}2.${RESET}  Tmux plugins          ${DIM}already installed — or Ctrl+b I to retry${RESET}"
 echo -e "  ${CYAN}3.${RESET}  Neovim plugins        ${DIM}nvim  (auto-installs on first open)${RESET}"
 echo -e "  ${CYAN}4.${RESET}  Set Git identity      ${DIM}git config --global user.name \"Your Name\"${RESET}"
 echo -e "                         ${DIM}git config --global user.email \"you@example.com\"${RESET}"

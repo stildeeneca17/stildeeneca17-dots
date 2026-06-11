@@ -76,7 +76,7 @@ Steps that require manual action after running `./install.sh`.
 ### 🪟 Tmux
 
 - [ ] **Verify plugins loaded**: open tmux — plugins should already be installed.
-  If not: `Ctrl+a` then `I` (capital i) to reinstall via TPM.
+  If not: `Ctrl+b` then `I` (capital i) to reinstall via TPM.
 
 ### 📝 Neovim
 
